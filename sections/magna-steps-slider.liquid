@@ -1,0 +1,269 @@
+{%- liquid
+  case section.settings.heading_font
+    when 'serif'
+      assign hfont = 'Georgia, "Times New Roman", serif'
+    when 'body'
+      assign hfont = 'var(--font-body-family, inherit)'
+    else
+      assign hfont = 'var(--font-heading-family, Georgia, serif)'
+  endcase
+-%}
+
+<style>
+  .ms-{{ section.id }} {
+    --ms-bg: {{ section.settings.section_bg }};
+    --ms-card-bg: {{ section.settings.card_bg }};
+    --ms-heading: {{ section.settings.heading_color }};
+    --ms-title: {{ section.settings.title_color }};
+    --ms-desc: {{ section.settings.desc_color }};
+    --ms-gap: {{ section.settings.slide_gap }}px;
+    --ms-sw: {{ section.settings.slide_width }}px;
+    --ms-start: {{ section.settings.start_offset }}px;
+    --ms-ratio: {{ section.settings.image_ratio }};
+    background: var(--ms-bg);
+    padding: {{ section.settings.pad_top }}px 0 {{ section.settings.pad_bottom }}px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ms-{{ section.id }} .ms__heading {
+    font-family: {{ hfont }};
+    font-weight: 400;
+    font-size: {{ section.settings.heading_size }}px;
+    color: var(--ms-heading);
+    margin: 0 0 {{ section.settings.heading_gap }}px;
+    padding: 0 var(--ms-start);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+  }
+  .ms-{{ section.id }} .ms__viewport { position: relative; }
+  .ms-{{ section.id }} .ms__track {
+    display: flex;
+    gap: var(--ms-gap);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding: 0 var(--ms-start);
+    scroll-padding-left: var(--ms-start);
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ms-{{ section.id }} .ms__track::-webkit-scrollbar { display: none; }
+  .ms-{{ section.id }} .ms__slide {
+    flex: 0 0 var(--ms-sw);
+    width: var(--ms-sw);
+    scroll-snap-align: start;
+  }
+  .ms-{{ section.id }} .ms__media {
+    background: var(--ms-card-bg);
+    aspect-ratio: var(--ms-ratio);
+    overflow: hidden;
+    margin-bottom: {{ section.settings.media_gap }}px;
+  }
+  .ms-{{ section.id }} .ms__media img,
+  .ms-{{ section.id }} .ms__media svg { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ms-{{ section.id }} .ms__title {
+    font-family: {{ hfont }};
+    font-size: {{ section.settings.title_size }}px;
+    color: var(--ms-title);
+    margin: 0 0 8px;
+    font-weight: 400;
+    line-height: 1.3;
+  }
+  .ms-{{ section.id }} .ms__desc {
+    font-size: {{ section.settings.desc_size }}px;
+    line-height: 1.7;
+    letter-spacing: 0.03em;
+    color: var(--ms-desc);
+    margin: 0;
+  }
+  .ms-{{ section.id }} .ms__arrow {
+    position: absolute;
+    top: {{ section.settings.arrow_top }}px;
+    width: {{ section.settings.arrow_size }}px;
+    height: {{ section.settings.arrow_size }}px;
+    border-radius: 50%;
+    border: 0;
+    background: {{ section.settings.arrow_bg }};
+    color: {{ section.settings.arrow_color }};
+    box-shadow: 0 2px 10px rgba(0,0,0,.12);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+    transform: translateY(-50%);
+  }
+  .ms-{{ section.id }} .ms__arrow--prev { left: 12px; }
+  .ms-{{ section.id }} .ms__arrow--next { right: 12px; }
+  .ms-{{ section.id }} .ms__arrow[disabled] { opacity: .35; cursor: default; }
+  {% if section.settings.show_arrows_desktop %}
+  @media screen and (min-width: 750px) { .ms-{{ section.id }} .ms__arrow { display: flex; } }
+  {% endif %}
+
+  @media screen and (max-width: 749px) {
+    .ms-{{ section.id }} {
+      --ms-sw: {{ section.settings.m_slide_width }}vw;
+      --ms-start: {{ section.settings.m_start_offset }}px;
+      --ms-gap: {{ section.settings.m_slide_gap }}px;
+      padding: {{ section.settings.m_pad_top }}px 0 {{ section.settings.m_pad_bottom }}px;
+    }
+    .ms-{{ section.id }} .ms__heading { font-size: {{ section.settings.m_heading_size }}px; margin-bottom: {{ section.settings.m_heading_gap }}px; }
+    .ms-{{ section.id }} .ms__title { font-size: {{ section.settings.m_title_size }}px; }
+    .ms-{{ section.id }} .ms__desc { font-size: {{ section.settings.m_desc_size }}px; }
+    .ms-{{ section.id }} .ms__arrow--prev { display: none !important; }
+    .ms-{{ section.id }} .ms__arrow--next { display: {% if section.settings.show_arrows_mobile %}flex{% else %}none{% endif %}; top: {{ section.settings.m_arrow_top }}px; right: 12px; }
+  }
+</style>
+
+<section class="ms ms-{{ section.id }}">
+  {%- if section.settings.heading != blank -%}
+    <h2 class="ms__heading">{{ section.settings.heading }}</h2>
+  {%- endif -%}
+
+  <div class="ms__viewport" data-ms>
+    <button class="ms__arrow ms__arrow--prev" type="button" aria-label="Previous" data-ms-prev>
+      <svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M14 5H2M6 1L2 5l4 4"/></svg>
+    </button>
+
+    <div class="ms__track" data-ms-track>
+      {%- for block in section.blocks -%}
+        <div class="ms__slide" {{ block.shopify_attributes }}>
+          <div class="ms__media">
+            {%- if block.settings.image != blank -%}
+              <img
+                src="{{ block.settings.image | image_url: width: 800 }}"
+                srcset="{{ block.settings.image | image_url: width: 400 }} 400w, {{ block.settings.image | image_url: width: 800 }} 800w"
+                sizes="(min-width: 750px) {{ section.settings.slide_width }}px, {{ section.settings.m_slide_width }}vw"
+                alt="{{ block.settings.image.alt | escape }}"
+                loading="lazy"
+                width="{{ block.settings.image.width }}"
+                height="{{ block.settings.image.height }}"
+              >
+            {%- else -%}
+              {{ 'image' | placeholder_svg_tag }}
+            {%- endif -%}
+          </div>
+          {%- if block.settings.title != blank -%}<h3 class="ms__title">{{ block.settings.title }}</h3>{%- endif -%}
+          {%- if block.settings.text != blank -%}<p class="ms__desc">{{ block.settings.text }}</p>{%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+
+    <button class="ms__arrow ms__arrow--next" type="button" aria-label="Next" data-ms-next>
+      <svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+    </button>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var root = document.querySelector('.ms-{{ section.id }}');
+    if (!root) return;
+    var track = root.querySelector('[data-ms-track]');
+    var prev = root.querySelector('[data-ms-prev]');
+    var next = root.querySelector('[data-ms-next]');
+    function step() {
+      var s = track.querySelector('.ms__slide');
+      if (!s) return 200;
+      return s.getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap || 0);
+    }
+    function update() {
+      prev.disabled = track.scrollLeft <= 2;
+      next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+    }
+    prev.addEventListener('click', function () { track.scrollBy({ left: -step(), behavior: 'smooth' }); });
+    next.addEventListener('click', function () { track.scrollBy({ left: step(), behavior: 'smooth' }); });
+    track.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Magna Steps Slider",
+  "tag": "div",
+  "settings": [
+    { "type": "header", "content": "Heading" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "So entsteht Ihr Unikat" },
+    { "type": "select", "id": "heading_font", "label": "Font", "default": "heading", "options": [
+      { "value": "heading", "label": "Theme heading font" },
+      { "value": "serif", "label": "Serif (Georgia)" },
+      { "value": "body", "label": "Theme body font" }
+    ]},
+    { "type": "range", "id": "heading_size", "label": "Heading size - desktop", "min": 20, "max": 80, "step": 1, "unit": "px", "default": 32 },
+    { "type": "range", "id": "m_heading_size", "label": "Heading size - mobile", "min": 18, "max": 60, "step": 1, "unit": "px", "default": 26 },
+    { "type": "range", "id": "heading_gap", "label": "Gap below heading - desktop", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 30 },
+    { "type": "range", "id": "m_heading_gap", "label": "Gap below heading - mobile", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 24 },
+
+    { "type": "header", "content": "Slider layout" },
+    { "type": "range", "id": "slide_width", "label": "Slide width - desktop", "min": 180, "max": 500, "step": 5, "unit": "px", "default": 270 },
+    { "type": "range", "id": "m_slide_width", "label": "Slide width - mobile (% of screen)", "min": 50, "max": 95, "step": 1, "unit": "%", "default": 84 },
+    { "type": "range", "id": "slide_gap", "label": "Gap between slides - desktop", "min": 0, "max": 60, "step": 2, "unit": "px", "default": 24 },
+    { "type": "range", "id": "m_slide_gap", "label": "Gap between slides - mobile", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 14 },
+    { "type": "range", "id": "start_offset", "label": "Left start offset - desktop", "min": 0, "max": 200, "step": 2, "unit": "px", "default": 100 },
+    { "type": "range", "id": "m_start_offset", "label": "Left start offset - mobile", "min": 0, "max": 60, "step": 2, "unit": "px", "default": 16 },
+    { "type": "select", "id": "image_ratio", "label": "Image ratio", "default": "1 / 1", "options": [
+      { "value": "1 / 1", "label": "Square" },
+      { "value": "4 / 5", "label": "Portrait 4:5" },
+      { "value": "3 / 4", "label": "Portrait 3:4" },
+      { "value": "4 / 3", "label": "Landscape 4:3" },
+      { "value": "16 / 9", "label": "Landscape 16:9" }
+    ]},
+    { "type": "range", "id": "media_gap", "label": "Gap below image", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 14 },
+
+    { "type": "header", "content": "Text" },
+    { "type": "range", "id": "title_size", "label": "Slide title size - desktop", "min": 12, "max": 32, "step": 1, "unit": "px", "default": 16 },
+    { "type": "range", "id": "m_title_size", "label": "Slide title size - mobile", "min": 12, "max": 32, "step": 1, "unit": "px", "default": 17 },
+    { "type": "range", "id": "desc_size", "label": "Description size - desktop", "min": 10, "max": 20, "step": 1, "unit": "px", "default": 11 },
+    { "type": "range", "id": "m_desc_size", "label": "Description size - mobile", "min": 10, "max": 20, "step": 1, "unit": "px", "default": 13 },
+
+    { "type": "header", "content": "Arrows" },
+    { "type": "checkbox", "id": "show_arrows_desktop", "label": "Show arrows on desktop", "default": false },
+    { "type": "checkbox", "id": "show_arrows_mobile", "label": "Show arrow on mobile", "default": true },
+    { "type": "range", "id": "arrow_size", "label": "Arrow size", "min": 28, "max": 64, "step": 2, "unit": "px", "default": 44 },
+   { "type": "range", "id": "arrow_top", "label": "Arrow vertical position - desktop", "min": 20, "max": 420, "step": 5, "unit": "px", "default": 135 },
+    { "type": "range", "id": "m_arrow_top", "label": "Arrow vertical position - mobile", "min": 20, "max": 420, "step": 5, "unit": "px", "default": 90 },
+    { "type": "color", "id": "arrow_bg", "label": "Arrow background", "default": "#ffffff" },
+    { "type": "color", "id": "arrow_color", "label": "Arrow icon color", "default": "#1f1f1f" },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "section_bg", "label": "Section background", "default": "#f5f2ed" },
+    { "type": "color", "id": "card_bg", "label": "Image box background", "default": "#e9e6e1" },
+    { "type": "color", "id": "heading_color", "label": "Heading color", "default": "#1f1f1f" },
+    { "type": "color", "id": "title_color", "label": "Slide title color", "default": "#1f1f1f" },
+    { "type": "color", "id": "desc_color", "label": "Description color", "default": "#666666" },
+
+    { "type": "header", "content": "Section spacing" },
+    { "type": "range", "id": "pad_top", "label": "Top padding - desktop", "min": 0, "max": 150, "step": 2, "unit": "px", "default": 40 },
+    { "type": "range", "id": "pad_bottom", "label": "Bottom padding - desktop", "min": 0, "max": 150, "step": 2, "unit": "px", "default": 60 },
+    { "type": "range", "id": "m_pad_top", "label": "Top padding - mobile", "min": 0, "max": 150, "step": 2, "unit": "px", "default": 30 },
+    { "type": "range", "id": "m_pad_bottom", "label": "Bottom padding - mobile", "min": 0, "max": 150, "step": 2, "unit": "px", "default": 40 }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "title", "label": "Title", "default": "01 - Anfrage senden" },
+        { "type": "textarea", "id": "text", "label": "Description", "default": "Sie beschreiben Ihre Wunschvorstellung: Maße, Gestell, Form – per Formular, WhatsApp oder vor Ort." }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Magna Steps Slider",
+      "blocks": [
+        { "type": "slide", "settings": { "title": "01 - Anfrage senden", "text": "Sie beschreiben Ihre Wunschvorstellung: Maße, Gestell, Form – per Formular, WhatsApp oder vor Ort." } },
+        { "type": "slide", "settings": { "title": "02 - Unverbindliches Angebot", "text": "Innerhalb von 48 Stunden erhalten Sie Ihr persönliches Angebot inklusive Lieferzeit." } },
+        { "type": "slide", "settings": { "title": "03 - Ihre Steanauswahl", "text": "Sie wählen aus über 2.500 Natursteinen – und suchen Ihren Abschnitt aus der Tafel persönlich aus, vor Ort oder per Foto & Video." } },
+        { "type": "slide", "settings": { "title": "04 - Fertigung in Handarbeit", "text": "Ihr Unikat entsteht in unserem Atelier mit eigenen Tischlern und Schweißern." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

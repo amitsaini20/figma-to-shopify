@@ -1,0 +1,572 @@
+{% comment %}
+  Feature strip with editable icon image + rich text blocks and separate desktop/mobile controls.
+  Each block has its own icon image upload, icon width/height settings (desktop + mobile)
+  and a single rich text field.
+{% endcomment %}
+
+<section
+  id="Feature-strip-{{ section.id }}"
+  class="atelier-features"
+  style="
+    --features-bg: {{ section.settings.background_color }};
+    --features-text: {{ section.settings.text_color }};
+    --features-border-color: {{ section.settings.border_color }};
+    --features-padding-top: {{ section.settings.desktop_padding_top }}px;
+    --features-padding-bottom: {{ section.settings.desktop_padding_bottom }}px;
+    --features-padding-x: {{ section.settings.desktop_padding_x }}px;
+    --features-gap: {{ section.settings.desktop_gap }}px;
+    --features-columns: {{ section.settings.desktop_columns }};
+    --features-icon-size: {{ section.settings.desktop_icon_size }}px;
+    --features-text-size: {{ section.settings.desktop_text_size }}px;
+    --features-mobile-padding-top: {{ section.settings.mobile_padding_top }}px;
+    --features-mobile-padding-bottom: {{ section.settings.mobile_padding_bottom }}px;
+    --features-mobile-padding-x: {{ section.settings.mobile_padding_x }}px;
+    --features-mobile-gap: {{ section.settings.mobile_gap }}px;
+    --features-mobile-columns: {{ section.settings.mobile_columns }};
+    --features-mobile-icon-size: {{ section.settings.mobile_icon_size }}px;
+    --features-mobile-text-size: {{ section.settings.mobile_text_size }}px;
+  "
+>
+  {% if section.settings.section_heading != blank %}
+    <h2 class="atelier-features__heading">
+      {{ section.settings.section_heading | escape }}
+    </h2>
+  {% endif %}
+
+  <div class="atelier-features__grid">
+    {% for block in section.blocks %}
+      {%- liquid
+        assign icon_w_desktop = block.settings.icon_width_desktop
+        assign icon_h_desktop = block.settings.icon_height_desktop
+        assign icon_w_mobile = block.settings.icon_width_mobile
+        assign icon_h_mobile = block.settings.icon_height_mobile
+
+        if icon_w_desktop > 0
+          assign block_icon_w_desktop = icon_w_desktop | append: 'px'
+        else
+          assign block_icon_w_desktop = 'var(--features-icon-size)'
+        endif
+
+        if icon_h_desktop > 0
+          assign block_icon_h_desktop = icon_h_desktop | append: 'px'
+        else
+          assign block_icon_h_desktop = 'var(--features-icon-size)'
+        endif
+
+        if icon_w_mobile > 0
+          assign block_icon_w_mobile = icon_w_mobile | append: 'px'
+        else
+          assign block_icon_w_mobile = 'var(--features-mobile-icon-size)'
+        endif
+
+        if icon_h_mobile > 0
+          assign block_icon_h_mobile = icon_h_mobile | append: 'px'
+        else
+          assign block_icon_h_mobile = 'var(--features-mobile-icon-size)'
+        endif
+      -%}
+
+      <div
+        class="atelier-features__item"
+        style="
+          --block-icon-w: {{ block_icon_w_desktop }};
+          --block-icon-h: {{ block_icon_h_desktop }};
+          --block-icon-w-mobile: {{ block_icon_w_mobile }};
+          --block-icon-h-mobile: {{ block_icon_h_mobile }};
+        "
+        {{ block.shopify_attributes }}
+      >
+        {% if block.settings.icon_image != blank %}
+          <div class="atelier-features__icon">
+            <img
+              src="{{ block.settings.icon_image | image_url: width: 200 }}"
+              alt="{{ block.settings.icon_image.alt | default: block.settings.text | strip_html | truncate: 60 | escape }}"
+              width="{{ block.settings.icon_image.width }}"
+              height="{{ block.settings.icon_image.height }}"
+              loading="lazy"
+            >
+          </div>
+        {% endif %}
+
+        {% if block.settings.text != blank %}
+          <div class="atelier-features__text rte">
+            {{ block.settings.text }}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<style>
+  #Feature-strip-{{ section.id }} {
+    padding:
+      var(--features-padding-top)
+      var(--features-padding-x)
+      var(--features-padding-bottom);
+    color: var(--features-text);
+    background: var(--features-bg);
+    border-bottom: {{ section.settings.border_bottom_width }}px solid
+      var(--features-border-color);
+  }
+
+  #Feature-strip-{{ section.id }} .atelier-features__heading {
+    margin: 0 0 30px;
+    text-align: center;
+    font-family: Georgia, serif;
+    font-size: {{ section.settings.desktop_section_heading_size }}px;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  #Feature-strip-{{ section.id }} .atelier-features__grid {
+    display: grid;
+    grid-template-columns: repeat(
+      var(--features-columns),
+      minmax(0, 1fr)
+    );
+    gap: var(--features-gap);
+    align-items: start;
+  }
+
+  #Feature-strip-{{ section.id }} .atelier-features__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 0;
+  }
+
+  #Feature-strip-{{ section.id }} .atelier-features__icon {
+    width: var(--block-icon-w);
+    height: var(--block-icon-h);
+    margin-bottom: {{ section.settings.desktop_icon_spacing }}px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #Feature-strip-{{ section.id }} .atelier-features__icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  #Feature-strip-{{ section.id }} .atelier-features__text {
+    max-width: {{ section.settings.desktop_text_width }}px;
+    font-size: var(--features-text-size);
+    line-height: 1.45;
+  }
+
+  #Feature-strip-{{ section.id }} .atelier-features__text > *:first-child {
+    margin-top: 0;
+  }
+
+  #Feature-strip-{{ section.id }} .atelier-features__text > *:last-child {
+    margin-bottom: 0;
+  }
+
+  #Feature-strip-{{ section.id }} .atelier-features__text p {
+    margin: 0 0 4px;
+  }
+
+  #Feature-strip-{{ section.id }} .atelier-features__text strong,
+  #Feature-strip-{{ section.id }} .atelier-features__text b {
+    font-weight: 600;
+  }
+
+  #Feature-strip-{{ section.id }} .atelier-features__text a {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  #Feature-strip-{{ section.id }} .atelier-features__text ul,
+  #Feature-strip-{{ section.id }} .atelier-features__text ol {
+    margin: 0 0 4px;
+    padding-left: 1.2em;
+    text-align: left;
+  }
+
+  @media screen and (max-width: 749px) {
+    #Feature-strip-{{ section.id }} {
+      padding:
+        var(--features-mobile-padding-top)
+        var(--features-mobile-padding-x)
+        var(--features-mobile-padding-bottom);
+    }
+
+    #Feature-strip-{{ section.id }} .atelier-features__heading {
+      margin-bottom: 22px;
+      font-size: {{ section.settings.mobile_section_heading_size }}px;
+    }
+
+    #Feature-strip-{{ section.id }} .atelier-features__grid {
+      grid-template-columns: repeat(
+        var(--features-mobile-columns),
+        minmax(0, 1fr)
+      );
+      gap: var(--features-mobile-gap);
+    }
+
+    #Feature-strip-{{ section.id }} .atelier-features__icon {
+      width: var(--block-icon-w-mobile);
+      height: var(--block-icon-h-mobile);
+      margin-bottom: {{ section.settings.mobile_icon_spacing }}px;
+    }
+
+    #Feature-strip-{{ section.id }} .atelier-features__text {
+      max-width: 100%;
+      font-size: var(--features-mobile-text-size);
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Atelier feature icons",
+  "tag": "section",
+  "class": "section-atelier-features",
+  "settings": [
+    {
+      "type": "text",
+      "id": "section_heading",
+      "label": "Optional section heading"
+    },
+    {
+      "type": "header",
+      "content": "Colors and border"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#F7F4F0"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#655E57"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Bottom border",
+      "default": "#DED8D1"
+    },
+    {
+      "type": "range",
+      "id": "border_bottom_width",
+      "label": "Bottom border width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "default": 1
+    },
+    {
+      "type": "header",
+      "content": "Desktop layout"
+    },
+    {
+      "type": "range",
+      "id": "desktop_columns",
+      "label": "Columns",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "desktop_gap",
+      "label": "Gap between items",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "desktop_padding_x",
+      "label": "Left/right padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "desktop_padding_top",
+      "label": "Top padding",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 35
+    },
+    {
+      "type": "range",
+      "id": "desktop_padding_bottom",
+      "label": "Bottom padding",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 35
+    },
+    {
+      "type": "range",
+      "id": "desktop_icon_size",
+      "label": "Default icon size (used when block width/height is 0)",
+      "min": 16,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 26
+    },
+    {
+      "type": "range",
+      "id": "desktop_icon_spacing",
+      "label": "Space below icon",
+      "min": 4,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "desktop_section_heading_size",
+      "label": "Section heading size",
+      "min": 18,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "desktop_text_size",
+      "label": "Text size",
+      "min": 9,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "desktop_text_width",
+      "label": "Text max width",
+      "min": 100,
+      "max": 320,
+      "step": 10,
+      "unit": "px",
+      "default": 210
+    },
+    {
+      "type": "header",
+      "content": "Mobile layout"
+    },
+    {
+      "type": "range",
+      "id": "mobile_columns",
+      "label": "Columns",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "mobile_gap",
+      "label": "Gap between items",
+      "min": 4,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "mobile_padding_x",
+      "label": "Left/right padding",
+      "min": 8,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "mobile_padding_top",
+      "label": "Top padding",
+      "min": 10,
+      "max": 70,
+      "step": 5,
+      "unit": "px",
+      "default": 25
+    },
+    {
+      "type": "range",
+      "id": "mobile_padding_bottom",
+      "label": "Bottom padding",
+      "min": 10,
+      "max": 70,
+      "step": 5,
+      "unit": "px",
+      "default": 25
+    },
+    {
+      "type": "range",
+      "id": "mobile_icon_size",
+      "label": "Default icon size (used when block width/height is 0)",
+      "min": 14,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "mobile_icon_spacing",
+      "label": "Space below icon",
+      "min": 2,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "mobile_section_heading_size",
+      "label": "Section heading size",
+      "min": 16,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 22
+    },
+    {
+      "type": "range",
+      "id": "mobile_text_size",
+      "label": "Text size",
+      "min": 8,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 10
+    }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Icon with text",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon_image",
+          "label": "Icon image"
+        },
+        {
+          "type": "header",
+          "content": "Icon size - Desktop (0 = use section default)"
+        },
+        {
+          "type": "range",
+          "id": "icon_width_desktop",
+          "label": "Icon width",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "px",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "icon_height_desktop",
+          "label": "Icon height",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "px",
+          "default": 0
+        },
+        {
+          "type": "header",
+          "content": "Icon size - Mobile (0 = use section default)"
+        },
+        {
+          "type": "range",
+          "id": "icon_width_mobile",
+          "label": "Icon width",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "px",
+          "default": 0
+        },
+        {
+          "type": "range",
+          "id": "icon_height_mobile",
+          "label": "Icon height",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "px",
+          "default": 0
+        },
+        {
+          "type": "header",
+          "content": "Content"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p><strong>Handwerkliche Fertigung</strong><br>In Deutschland gefertigt</p>"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Atelier feature icons",
+      "blocks": [
+        {
+          "type": "feature",
+          "settings": {
+            "text": "<p><strong>Handwerkliche Fertigung</strong><br>In Deutschland gefertigt</p>"
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "text": "<p><strong>Echter Naturstein</strong><br>Jedes Stück ein Unikat</p>"
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "text": "<p><strong>Individuell konfigurierbar</strong><br>Und maßgefertigt</p>"
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "text": "<p><strong>Sicherer Versand</strong><br>Und Premium-Lieferoptionen</p>"
+          }
+        }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["*"]
+  }
+}
+{% endschema %}

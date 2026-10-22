@@ -1,0 +1,222 @@
+{%- liquid
+  case section.settings.heading_font
+    when 'serif'
+      assign hfont = 'Georgia, "Times New Roman", serif'
+    when 'body'
+      assign hfont = 'var(--font-body-family, inherit)'
+    else
+      assign hfont = 'var(--font-heading-family, Georgia, serif)'
+  endcase
+-%}
+
+<style>
+  .mh-{{ section.id }} {
+    --mh-bg: {{ section.settings.section_bg }};
+    --mh-box-bg: {{ section.settings.box_bg }};
+    --mh-heading: {{ section.settings.heading_color }};
+    --mh-text: {{ section.settings.text_color }};
+    --mh-btn-bg: {{ section.settings.btn_bg }};
+    --mh-btn-icon-bg: {{ section.settings.btn_icon_bg }};
+    --mh-btn-text: {{ section.settings.btn_text_color }};
+    --mh-link: {{ section.settings.link_color }};
+    background: var(--mh-bg);
+    padding: {{ section.settings.pad_top }}px {{ section.settings.side_gap }}px {{ section.settings.pad_bottom }}px 0;
+    position: relative;
+  }
+  .mh-{{ section.id }} .mh__wrap { position: relative; }
+  .mh-{{ section.id }} .mh__media { height: {{ section.settings.image_height }}px; overflow: hidden; background: #ddd; }
+  .mh-{{ section.id }} .mh__media img,
+  .mh-{{ section.id }} .mh__media svg { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .mh-{{ section.id }} .mh__box {
+    position: absolute;
+    left: {{ section.settings.box_left }}px;
+    bottom: {{ section.settings.box_bottom }}px;
+    width: {{ section.settings.box_width }}px;
+    background: var(--mh-box-bg);
+    padding: {{ section.settings.box_pad_y }}px {{ section.settings.box_pad_x }}px;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  .mh-{{ section.id }} .mh__heading {
+    font-family: {{ hfont }};
+    font-weight: 400;
+    font-size: {{ section.settings.heading_size }}px;
+    line-height: 1.25;
+    color: var(--mh-heading);
+    margin: 0 0 {{ section.settings.heading_gap }}px;
+    text-wrap: balance;
+  }
+  .mh-{{ section.id }} .mh__text {
+    font-size: {{ section.settings.text_size }}px;
+    line-height: 1.7;
+    letter-spacing: 0.04em;
+    color: var(--mh-text);
+    margin: 0 0 {{ section.settings.text_gap }}px;
+  }
+  .mh-{{ section.id }} .mh__btn {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    background: var(--mh-btn-bg);
+    color: var(--mh-btn-text);
+    text-decoration: none;
+    font-size: {{ section.settings.btn_size }}px;
+    letter-spacing: 0.08em;
+    height: {{ section.settings.btn_height }}px;
+    transition: opacity .2s;
+  }
+  .mh-{{ section.id }} .mh__btn:hover { opacity: .88; }
+  .mh-{{ section.id }} .mh__btn-icon {
+    width: {{ section.settings.btn_height }}px;
+    background: var(--mh-btn-icon-bg);
+    display: flex; align-items: center; justify-content: center;
+    flex: 0 0 auto;
+  }
+  .mh-{{ section.id }} .mh__btn-label { flex: 1; display: flex; align-items: center; justify-content: center; padding-right: {{ section.settings.btn_height }}px; }
+  .mh-{{ section.id }} .mh__link {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: {{ section.settings.link_gap }}px;
+    color: var(--mh-link);
+    font-size: {{ section.settings.link_size }}px;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+  }
+  .mh-{{ section.id }} .mh__link span { text-decoration: underline; text-underline-offset: 3px; }
+
+  @media screen and (max-width: 749px) {
+    .mh-{{ section.id }} {
+      padding: {{ section.settings.m_pad_top }}px 0 {{ section.settings.m_pad_bottom }}px;
+    }
+    .mh-{{ section.id }} .mh__media { height: {{ section.settings.m_image_height }}px; }
+    .mh-{{ section.id }} .mh__box {
+      position: static;
+      width: auto;
+      background: {{ section.settings.m_box_bg }};
+      padding: {{ section.settings.m_box_pad_y }}px 24px 0;
+    }
+    .mh-{{ section.id }} .mh__heading { font-size: {{ section.settings.m_heading_size }}px; margin-bottom: 20px; }
+    .mh-{{ section.id }} .mh__text { font-size: {{ section.settings.m_text_size }}px; margin-bottom: 28px; }
+    .mh-{{ section.id }} .mh__btn { height: {{ section.settings.m_btn_height }}px; }
+    .mh-{{ section.id }} .mh__btn-icon { width: {{ section.settings.m_btn_height }}px; }
+    .mh-{{ section.id }} .mh__btn-label { padding-right: {{ section.settings.m_btn_height }}px; }
+    .mh-{{ section.id }} .mh__link { margin-top: 26px; font-size: {{ section.settings.m_link_size }}px; font-weight: 500; }
+  }
+</style>
+
+<section class="mh mh-{{ section.id }}">
+  <div class="mh__wrap">
+    <div class="mh__media">
+      {%- if section.settings.image != blank -%}
+        <picture>
+          {%- if section.settings.mobile_image != blank -%}
+            <source media="(max-width: 749px)" srcset="{{ section.settings.mobile_image | image_url: width: 1000 }}">
+          {%- endif -%}
+          <img
+            src="{{ section.settings.image | image_url: width: 2000 }}"
+            srcset="{{ section.settings.image | image_url: width: 800 }} 800w, {{ section.settings.image | image_url: width: 1400 }} 1400w, {{ section.settings.image | image_url: width: 2000 }} 2000w"
+            sizes="100vw"
+            alt="{{ section.settings.image.alt | escape }}"
+            loading="eager"
+            width="{{ section.settings.image.width }}"
+            height="{{ section.settings.image.height }}"
+            style="object-position: {{ section.settings.image_position }};"
+          >
+        </picture>
+      {%- else -%}
+        {{ 'image' | placeholder_svg_tag }}
+      {%- endif -%}
+    </div>
+
+    <div class="mh__box">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="mh__heading">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+      {%- if section.settings.text != blank -%}
+        <div class="mh__text">{{ section.settings.text }}</div>
+      {%- endif -%}
+      {%- if section.settings.btn_label != blank -%}
+        <a class="mh__btn" href="{{ section.settings.btn_link | default: '#' }}">
+          <span class="mh__btn-icon">
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+          </span>
+          <span class="mh__btn-label">{{ section.settings.btn_label }}</span>
+        </a>
+      {%- endif -%}
+      {%- if section.settings.link_label != blank -%}
+        <a class="mh__link" href="{{ section.settings.link_url | default: '#' }}">
+          <svg width="12" height="9" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+          <span>{{ section.settings.link_label }}</span>
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Magna Hero",
+  "tag": "div",
+  "settings": [
+    { "type": "header", "content": "Image" },
+    { "type": "image_picker", "id": "image", "label": "Desktop image" },
+    { "type": "image_picker", "id": "mobile_image", "label": "Mobile image (optional)" },
+    { "type": "text", "id": "image_position", "label": "Image position (CSS)", "default": "center center", "info": "e.g. center top, 50% 30%" },
+    { "type": "range", "id": "image_height", "label": "Image height - desktop", "min": 300, "max": 900, "step": 10, "unit": "px", "default": 520 },
+    { "type": "range", "id": "m_image_height", "label": "Image height - mobile", "min": 200, "max": 700, "step": 10, "unit": "px", "default": 330 },
+
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Ihr persönliches Design von uns realisiert" },
+    { "type": "textarea", "id": "text", "label": "Text", "default": "Mit eigenen Maschinen, Tischlern und Schweißern erfüllen wir Ihnen jeden Wunsch – gefertigt in Deutschland, für Qualität und Langlebigkeit." },
+    { "type": "text", "id": "btn_label", "label": "Button label", "default": "jetzt beraten lassen" },
+    { "type": "url", "id": "btn_link", "label": "Button link" },
+    { "type": "text", "id": "link_label", "label": "Small link label", "default": "Mehr über Magna Atelier" },
+    { "type": "url", "id": "link_url", "label": "Small link URL" },
+
+    { "type": "header", "content": "Content box - desktop" },
+    { "type": "range", "id": "box_width", "label": "Box width", "min": 240, "max": 600, "step": 5, "unit": "px", "default": 340 },
+    { "type": "range", "id": "box_left", "label": "Box left offset", "min": 0, "max": 300, "step": 5, "unit": "px", "default": 100 },
+    { "type": "range", "id": "box_bottom", "label": "Box bottom offset", "min": -100, "max": 200, "step": 5, "unit": "px", "default": 0 },
+    { "type": "range", "id": "box_pad_x", "label": "Box padding left/right", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 28 },
+    { "type": "range", "id": "box_pad_y", "label": "Box padding top/bottom", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 28 },
+
+    { "type": "header", "content": "Typography" },
+    { "type": "select", "id": "heading_font", "label": "Heading font", "default": "heading", "options": [
+      { "value": "heading", "label": "Theme heading font" },
+      { "value": "serif", "label": "Serif (Georgia)" },
+      { "value": "body", "label": "Theme body font" }
+    ]},
+    { "type": "range", "id": "heading_size", "label": "Heading size - desktop", "min": 16, "max": 60, "step": 1, "unit": "px", "default": 22 },
+    { "type": "range", "id": "m_heading_size", "label": "Heading size - mobile", "min": 16, "max": 50, "step": 1, "unit": "px", "default": 28 },
+    { "type": "range", "id": "heading_gap", "label": "Gap below heading", "min": 0, "max": 50, "step": 1, "unit": "px", "default": 14 },
+    { "type": "range", "id": "text_size", "label": "Text size - desktop", "min": 10, "max": 22, "step": 1, "unit": "px", "default": 11 },
+    { "type": "range", "id": "m_text_size", "label": "Text size - mobile", "min": 10, "max": 22, "step": 1, "unit": "px", "default": 14 },
+    { "type": "range", "id": "text_gap", "label": "Gap below text", "min": 0, "max": 50, "step": 1, "unit": "px", "default": 18 },
+    { "type": "range", "id": "btn_size", "label": "Button text size", "min": 10, "max": 20, "step": 1, "unit": "px", "default": 11 },
+    { "type": "range", "id": "btn_height", "label": "Button height - desktop", "min": 30, "max": 80, "step": 1, "unit": "px", "default": 38 },
+    { "type": "range", "id": "m_btn_height", "label": "Button height - mobile", "min": 36, "max": 80, "step": 1, "unit": "px", "default": 52 },
+    { "type": "range", "id": "link_size", "label": "Small link size - desktop", "min": 9, "max": 18, "step": 1, "unit": "px", "default": 10 },
+    { "type": "range", "id": "m_link_size", "label": "Small link size - mobile", "min": 10, "max": 20, "step": 1, "unit": "px", "default": 13 },
+    { "type": "range", "id": "link_gap", "label": "Gap above small link", "min": 0, "max": 40, "step": 1, "unit": "px", "default": 14 },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "section_bg", "label": "Section background", "default": "#f5f2ed" },
+    { "type": "color", "id": "box_bg", "label": "Box background - desktop", "default": "#ffffff" },
+    { "type": "color", "id": "m_box_bg", "label": "Box background - mobile", "default": "#f5f2ed" },
+    { "type": "color", "id": "heading_color", "label": "Heading color", "default": "#1f1f1f" },
+    { "type": "color", "id": "text_color", "label": "Text color", "default": "#555555" },
+    { "type": "color", "id": "btn_bg", "label": "Button background", "default": "#4f5e4b" },
+    { "type": "color", "id": "btn_icon_bg", "label": "Button icon box background", "default": "#5f6e5b" },
+    { "type": "color", "id": "btn_text_color", "label": "Button text color", "default": "#ffffff" },
+    { "type": "color", "id": "link_color", "label": "Small link color", "default": "#1f1f1f" },
+
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "side_gap", "label": "Right gap (desktop)", "min": 0, "max": 100, "step": 2, "unit": "px", "default": 50 },
+    { "type": "range", "id": "pad_top", "label": "Top padding - desktop", "min": 0, "max": 100, "step": 2, "unit": "px", "default": 0 },
+    { "type": "range", "id": "pad_bottom", "label": "Bottom padding - desktop", "min": 0, "max": 150, "step": 2, "unit": "px", "default": 60 },
+    { "type": "range", "id": "m_pad_top", "label": "Top padding - mobile", "min": 0, "max": 100, "step": 2, "unit": "px", "default": 0 },
+    { "type": "range", "id": "m_pad_bottom", "label": "Bottom padding - mobile", "min": 0, "max": 150, "step": 2, "unit": "px", "default": 40 },
+    { "type": "range", "id": "m_box_pad_y", "label": "Mobile content top padding", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 32 }
+  ],
+  "presets": [{ "name": "Magna Hero" }]
+}
+{% endschema %}
