@@ -1,3 +1,5 @@
+
+
 <style>
   {{ section.settings.heading_font | font_face: font_display: 'swap' }}
   {{ section.settings.body_font | font_face: font_display: 'swap' }}
@@ -24,7 +26,7 @@
     --insp-arrow-top: {{ section.settings.arrow_top }}%;
     --insp-arrow-offset: {{ section.settings.arrow_offset }}px;
 
-        --insp-sub-size: {{ section.settings.desktop_sub_size }}px;
+    --insp-sub-size: {{ section.settings.desktop_sub_size }}px;
     --insp-sub-width: {{ section.settings.desktop_sub_width }}px;
     --insp-sub-gap: {{ section.settings.sub_gap }}px;
     --insp-sub-color: {{ section.settings.sub_color }};
@@ -51,8 +53,6 @@
     letter-spacing: {{ section.settings.heading_spacing }}px;
   }
 
-
-
   #Insp-{{ section.id }} .insp__heading--has-sub {
     margin-bottom: var(--insp-sub-gap);
   }
@@ -74,9 +74,6 @@
     letter-spacing: 0.06em;
     line-height: 1.6;
   }
-
-
-
 
   #Insp-{{ section.id }} .insp__wrap {
     position: relative;
@@ -117,7 +114,6 @@
   #Insp-{{ section.id }} .insp__media {
     aspect-ratio: var(--insp-ratio);
     overflow: hidden;
-    
   }
 
   #Insp-{{ section.id }} .insp__media img,
@@ -148,6 +144,7 @@
     line-height: 1.5;
   }
 
+  /* Arrows: desktop pe hamesha hidden */
   #Insp-{{ section.id }} .insp__arrow {
     position: absolute;
     top: var(--insp-arrow-top);
@@ -164,6 +161,12 @@
     background: var(--insp-arrow-bg);
     color: var(--insp-arrow-color);
     cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  #Insp-{{ section.id }} .insp__arrow:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 
   #Insp-{{ section.id }} .insp__arrow--prev { left: var(--insp-arrow-offset); }
@@ -173,10 +176,6 @@
     width: 18px;
     height: 18px;
   }
-
-  {% if section.settings.show_arrows_desktop %}
-    #Insp-{{ section.id }} .insp__arrow { display: flex; }
-  {% endif %}
 
   @media screen and (max-width: 749px) {
     #Insp-{{ section.id }} {
@@ -190,20 +189,25 @@
       --insp-h-space: {{ section.settings.mobile_heading_space }}px;
       --insp-t-size: {{ section.settings.mobile_title_size }}px;
       --insp-s-size: {{ section.settings.mobile_text_size }}px;
-            --insp-sub-size: {{ section.settings.mobile_sub_size }}px;
+      --insp-sub-size: {{ section.settings.mobile_sub_size }}px;
       --insp-sub-width: 100%;
     }
 
-    #Insp-{{ section.id }} .insp__arrow { display: none; }
-
+    /* Arrows sirf mobile pe */
     {% if section.settings.show_arrows_mobile %}
       #Insp-{{ section.id }} .insp__arrow { display: flex; }
     {% endif %}
   }
 </style>
 
-<section id="Insp-{{ section.id }}" class="insp" data-speed="{{ section.settings.slide_speed }}">
-    {% if section.settings.heading != blank %}
+<section
+  id="Insp-{{ section.id }}"
+  class="insp"
+  data-speed="{{ section.settings.slide_speed }}"
+  data-autoplay="{{ section.settings.autoplay_desktop }}"
+  data-interval="{{ section.settings.autoplay_interval }}"
+>
+  {% if section.settings.heading != blank %}
     {% assign heading_html = section.settings.heading | escape %}
     {% assign ul_text = section.settings.underline_text | escape %}
     {% if ul_text != blank and heading_html contains ul_text %}
@@ -287,6 +291,10 @@
     var nextBtn = root.querySelector('.insp__arrow--next');
     var speed = parseInt(root.getAttribute('data-speed'), 10) || 500;
 
+    var autoplayOn = root.getAttribute('data-autoplay') === 'true';
+    var intervalMs = (parseFloat(root.getAttribute('data-interval')) || 3) * 1000;
+    var desktopMQ = window.matchMedia('(min-width: 750px)');
+
     var originals = Array.prototype.slice.call(track.children);
     var total = originals.length;
 
@@ -297,7 +305,8 @@
       return;
     }
 
-    /* Clones: itne sets dono side ki sab visible slides cover ho jayein */
+    /* Clones sirf left/right ka half peek dikhane ke liye hain.
+       Navigation sirf asli slides ke beech chalta hai (no loop). */
     var sets = Math.ceil(8 / total);
 
     function makeClones() {
@@ -317,47 +326,77 @@
     track.insertBefore(makeClones(), track.firstChild);
     track.appendChild(makeClones());
 
-    var index = sets * total;
-    var busy = false;
+    var index = 0;
 
     function metrics() {
-      var first = track.children[0];
       var cs = getComputedStyle(track);
-      return {
-        s: first.getBoundingClientRect().width,
-        g: parseFloat(cs.columnGap) || parseFloat(cs.gap) || 0,
-        peek: parseFloat(getComputedStyle(root).getPropertyValue('--insp-peek')) || 0
-      };
+      var rs = getComputedStyle(root);
+      var s = track.children[0].getBoundingClientRect().width;
+      var g = parseFloat(cs.columnGap) || parseFloat(cs.gap) || 0;
+      var peek = parseFloat(rs.getPropertyValue('--insp-peek')) || 0;
+      var center = parseFloat(rs.getPropertyValue('--insp-center')) || 1;
+      var maxIndex = Math.max(0, total - center);
+      return { s: s, g: g, peek: peek, maxIndex: maxIndex };
+    }
+
+    function updateArrows(m) {
+      prevBtn.disabled = index <= 0;
+      nextBtn.disabled = index >= m.maxIndex;
     }
 
     function setPosition(animate) {
       var m = metrics();
-      var x = m.peek * m.s + m.g - index * (m.s + m.g);
+      if (index > m.maxIndex) index = m.maxIndex;
+      if (index < 0) index = 0;
+
+      var domIndex = sets * total + index;
+      var x = m.peek * m.s + m.g - domIndex * (m.s + m.g);
       track.style.transition = animate ? 'transform ' + speed + 'ms ease' : 'none';
       track.style.transform = 'translate3d(' + x + 'px,0,0)';
-    }
-
-    function normalize() {
-      var min = sets * total;
-      var max = (sets + 1) * total;
-      if (index >= max) index -= total;
-      else if (index < min) index += total;
-      setPosition(false);
+      updateArrows(m);
     }
 
     function go(dir) {
-      if (busy) return;
-      busy = true;
-      index += dir;
+      var m = metrics();
+      var next = index + dir;
+      if (next < 0 || next > m.maxIndex) return; /* no loop */
+      index = next;
       setPosition(true);
-      setTimeout(function () {
-        normalize();
-        busy = false;
-      }, speed + 30);
     }
 
-    prevBtn.addEventListener('click', function () { go(-1); });
-    nextBtn.addEventListener('click', function () { go(1); });
+    /* ---------- Auto scroll (sirf desktop) ---------- */
+    var timer = null;
+
+    function stopAuto() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    function tick() {
+      if (!desktopMQ.matches) return;            /* mobile pe kuch nahi */
+      var m = metrics();
+      if (index >= m.maxIndex) {                 /* last pe ruk jao */
+        stopAuto();
+        return;
+      }
+      go(1);
+    }
+
+    function startAuto() {
+      stopAuto();
+      if (!autoplayOn) return;
+      timer = setInterval(tick, intervalMs);
+    }
+
+    /* Manual action ke baad timer reset */
+    function userMoved() {
+      startAuto();
+    }
+
+    prevBtn.addEventListener('click', function () { go(-1); userMoved(); });
+    nextBtn.addEventListener('click', function () { go(1); userMoved(); });
 
     /* Drag / swipe */
     var startX = 0, startY = 0, dragging = false, moved = false;
@@ -386,6 +425,7 @@
       var dy = e.clientY - startY;
       if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
         go(dx < 0 ? 1 : -1);
+        userMoved();
       }
     }
 
@@ -409,6 +449,7 @@
 
     window.addEventListener('load', function () { setPosition(false); });
     setPosition(false);
+    startAuto();
   })();
 </script>
 
@@ -448,7 +489,7 @@
       "default": 1.5
     },
 
-        { "type": "header", "content": "Heading underline" },
+    { "type": "header", "content": "Heading underline" },
     {
       "type": "text",
       "id": "underline_text",
@@ -502,8 +543,26 @@
       "default": 500
     },
 
-    { "type": "header", "content": "Arrows" },
-    { "type": "checkbox", "id": "show_arrows_desktop", "label": "Show arrows on desktop", "default": true },
+    { "type": "header", "content": "Auto scroll (desktop only)" },
+    {
+      "type": "checkbox",
+      "id": "autoplay_desktop",
+      "label": "Enable auto scroll on desktop",
+      "info": "Last slide pe aakar ruk jayega, wapas first pe nahi jayega.",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_interval",
+      "label": "Auto scroll time",
+      "min": 1,
+      "max": 10,
+      "step": 0.5,
+      "unit": "s",
+      "default": 3
+    },
+
+    { "type": "header", "content": "Arrows (mobile only)" },
     { "type": "checkbox", "id": "show_arrows_mobile", "label": "Show arrows on mobile", "default": true },
     { "type": "color", "id": "arrow_bg", "label": "Arrow background", "default": "#FFFFFF" },
     { "type": "color", "id": "arrow_color", "label": "Arrow icon", "default": "#1E1B19" },
@@ -563,7 +622,7 @@
       "type": "select",
       "id": "mobile_peek",
       "label": "Visible part of side slides",
-      "default": "0.15",
+      "default": "0.5",
       "options": [
         { "value": "0.1", "label": "10%" },
         { "value": "0.15", "label": "15%" },
